@@ -1,0 +1,81 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+#-------------------DATABASE
+
+    - yum:
+        name: mariadb-server
+        state: present
+      when: "'node_database' in group_names"
+
+    - systemd:
+        name: mariadb
+        enabled: yes
+        state: started
+      when: "'node_database' in group_names"
+
+    - copy:
+        src: db.sql
+        dest: /tmp/
+      tags: files
+      when: "'node_database' in group_names"
+
+    - shell:
+        cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
+      when: "'node_database' in group_names"
+
+    - shell:
+        cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
+      loop: "{{ allowed_ip|flatten(levels=1) }}"
+      when: "'node_database' in group_names"
+
+#-------------------APP
+    - yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+         - python-setuptools
+         - python3
+         - screen
+      when: "'node_app' in group_names"
+
+    - pip:
+        executable: /usr/bin/pip3
+        name: virtualenv
+        state: present
+      when: "'node_app' in group_names"
+
+    - unarchive:
+        src: app.tar.gz
+        copy: yes
+        dest: /opt
+      when: "'node_app' in group_names"        
+
+    - shell:
+        cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
+      when: "'node_app' in group_names"
+
+    - file:
+        src: /opt/app/myapp.service
+        dest: /usr/lib/systemd/system/myapp.service
+        state: link
+      when: "'node_app' in group_names"
+
+    - template:
+        src: env_template.j2
+        dest: /opt/app/.env
+      when: "'node_app' in group_names"
+
+    - systemd:
+        daemon_reload: yes
+        name: myapp
+        enabled: yes
+        state: started
+      when: "'node_app' in group_names"
+
+    - shell:
+        cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
+      when: "'node_app' in group_names"
