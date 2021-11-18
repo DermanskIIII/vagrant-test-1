@@ -1,0 +1,11 @@
+[Unit]
+Description=My Super Application
+After=multi-user.target
+[Service]
+WorkingDirectory=/opt/app
+User=root
+Type=idle
+ExecStart=/usr/local/bin/flask run
+Restart=always
+[Install]
+WantedBy=multi-user.target
