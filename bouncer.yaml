@@ -18,7 +18,7 @@
         state: started
 
     - template:
-        src: haproxy.j2
+        src: haproxy_template.j2
         dest: /etc/haproxy/haproxy.cfg
 
     - shell:

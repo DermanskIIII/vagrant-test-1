@@ -5,11 +5,6 @@
 
   tasks:
 #-------------------DATABASE
-    - user:
-        name: vagrant
-        groups: docker
-        append: yes
-
     - file:
         path: "{{ item }}"
         state: directory
@@ -28,10 +23,10 @@
     #     state: link
     #   when: "'node_app' in group_names"
 
-    # - template:
-    #     src: env_template.j2
-    #     dest: /opt/app/.env
-    #   when: "'node_app' in group_names"
+    - template:
+         src: env_template.j2
+         dest: /tmp/appbuild/app/.env
+       when: "'node_app' in group_names"
 
     - yum:
         name: "{{ item }}"
@@ -57,11 +52,11 @@
         state: started
 
     - shell:
-        cmd: cd /tmp/appbuild && docker build -t apitest:0.2 . && docker tag apitest:0.2 localhost:5099/app
+        cmd: docker run -d -p 5099:5000 --restart=always -v /opt/registry:/var/lib/registry registry:2.1
       ignore_errors: yes
 
     - shell:
-        cmd: docker run -d -p 5099:5099 --restart=always -v /opt/registry:/var/lib/registry registry:2
+        cmd: cd /tmp/appbuild && docker build -t myapp . | grep built | awk '{ print $3," localhost:5099/myapp"}' | xargs echo docker tag && docker push localhost:5099/myapp
       ignore_errors: yes
 
     - systemd:

@@ -10,9 +10,9 @@
         state: present
       loop:
          - yum-utils
-         - python-setuptools
-         - python3
-         - screen
+         # - python-setuptools
+         # - python3
+         # - screen
 
     - shell:
         cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -25,42 +25,46 @@
          - docker-ce-cli 
          - containerd.io
 
+    - template:
+        src: daemon_template.j2
+        dest: /etc/docker/daemon.json
+
     - systemd:
         name: docker
         enabled: yes
         state: started
 
     - shell:
-        cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/app"
+        cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/myapp"
       ignore_errors: yes
 
-    - pip:
-        executable: /usr/bin/pip3
-        name: virtualenv
-        state: present
+    # - pip:
+    #     executable: /usr/bin/pip3
+    #     name: virtualenv
+    #     state: present
 
-    - unarchive:
-        src: app.tar.gz
-        copy: yes
-        dest: /opt
+    # - unarchive:
+    #     src: app.tar.gz
+    #     copy: yes
+    #     dest: /opt
 
-    - shell:
-        cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
+    # - shell:
+    #     cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
 
-    - file:
-        src: /opt/app/myapp.service
-        dest: /usr/lib/systemd/system/myapp.service
-        state: link
+    # - file:
+    #     src: /opt/app/myapp.service
+    #     dest: /usr/lib/systemd/system/myapp.service
+    #     state: link
 
-    - template:
-        src: env_template.j2
-        dest: /opt/app/.env
+    # - template:
+    #     src: env_template.j2
+    #     dest: /opt/app/.env
 
-    - systemd:
-        daemon_reload: yes
-        name: myapp
-        enabled: yes
-        state: started
+    # - systemd:
+    #     daemon_reload: yes
+    #     name: myapp
+    #     enabled: yes
+    #     state: started
 
     - shell:
         cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"

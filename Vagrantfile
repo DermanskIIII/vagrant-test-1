@@ -36,6 +36,7 @@ Vagrant.configure("2") do |config|
 	      "node_database" => ["database"]
 	    }
 	    ansible.extra_vars = {
+	    	"db_ip" => '192.168.56.10',
       	"allowed_ip" => [ 
       		'192.168.56.11', 
       		'192.168.56.12'
