@@ -1,7 +1,27 @@
 Vagrant.configure("2") do |config|
+  config.vm.define "haproxy" do |haproxy|
+	  haproxy.vm.box = "generic/centos7"
+		haproxy.vm.provider "vmware_desktop"
+	  haproxy.vm.network "private_network", ip: "192.168.56.20"
+	  haproxy.vm.network "forwarded_port", guest: 5000, host: 8080
+	  haproxy.vm.provision "ansible" do |ansible|
+	    ansible.playbook = "main.yaml"
+	    ansible.limit = "haproxy"
+	    ansible.groups = {
+	      "node_bouncer" => ["haproxy"]
+	    }
+	    ansible.extra_vars = {
+      	"backends" => [ 
+      		{ name: 'app1', address: '192.168.56.11' }, 
+      		{ name: 'app2', address: '192.168.56.12' }, 
+      	]
+    	}
+    end
+	end
+
   config.vm.define "database" do |database|
 	  database.vm.box = "generic/centos7"
-		database.vm.provider "virtualbox"
+		database.vm.provider "vmware_desktop"
 	  database.vm.network "private_network", ip: "192.168.56.10"
 	  database.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "main.yaml"
@@ -10,7 +30,6 @@ Vagrant.configure("2") do |config|
 	      "node_database" => ["database"]
 	    }
 	    ansible.extra_vars = {
-	    	"testvar" => 'aaa',
       	"allowed_ip" => [ 
       		'192.168.56.11', 
       		'192.168.56.12'
@@ -20,9 +39,9 @@ Vagrant.configure("2") do |config|
 	end
   config.vm.define "app1" do |app1|
 	  app1.vm.box = "generic/centos7"
-  	app1.vm.provider "virtualbox"
+  	app1.vm.provider "vmware_desktop"
   	app1.vm.network "private_network", ip: "192.168.56.11"
-  	app1.vm.network "forwarded_port", guest: 5000, host: 8080
+  	app1.vm.network "forwarded_port", guest: 5000, host: 8081
 		app1.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "main.yaml"
 	    ansible.limit = "app1"
@@ -38,9 +57,9 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "app2" do |app2|
     app2.vm.box = "generic/centos7"
-  	app2.vm.provider "virtualbox"
+  	app2.vm.provider "vmware_desktop"
   	app2.vm.network "private_network", ip: "192.168.56.12"
-  	app2.vm.network "forwarded_port", guest: 5000, host: 8081
+  	app2.vm.network "forwarded_port", guest: 5000, host: 8082
 		app2.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "main.yaml"
 	    ansible.limit = "app2"
@@ -54,4 +73,6 @@ Vagrant.configure("2") do |config|
     	}
     end
 	end
+
+
 end
