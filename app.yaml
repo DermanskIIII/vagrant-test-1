@@ -9,9 +9,25 @@
         name: "{{ item }}"
         state: present
       loop:
+         - yum-utils
          - python-setuptools
          - python3
          - screen
+
+    - shell:
+        cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    - yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+         - docker-ce 
+         - docker-ce-cli 
+         - containerd.io
+
+    - shell:
+        cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/app"
+      ignore_errors: yes
 
     - pip:
         executable: /usr/bin/pip3

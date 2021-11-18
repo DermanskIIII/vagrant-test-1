@@ -57,11 +57,11 @@
         state: started
 
     - shell:
-        cmd: cd /tmp/appbuild && docker build -t apitest:0.2 .
+        cmd: cd /tmp/appbuild && docker build -t apitest:0.2 . && docker tag apitest:0.2 localhost:5099/app
       ignore_errors: yes
 
     - shell:
-        cmd: docker run -d -p 5099:5099 --restart=always --name registry -v /opt/registry:/var/lib/registry registry:2
+        cmd: docker run -d -p 5099:5099 --restart=always -v /opt/registry:/var/lib/registry registry:2
       ignore_errors: yes
 
     - systemd:
