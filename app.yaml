@@ -1,74 +1,79 @@
 ---
-- hosts: all
+- name: Deploy applications servers
+  hosts: node_app
   become: yes
   gather_facts: yes
 
   tasks:
-#-------------------APP
-    - yum:
-        name: "{{ item }}"
-        state: present
-      loop:
-         - yum-utils
-         # - python-setuptools
-         # - python3
-         # - screen
+  - name: install necessary packages
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+       - yum-utils
+       - python-setuptools
+       - python3
+       - screen
 
-    - shell:
-        cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  # - yum:
+  #     name: "{{ item }}"
+  #     state: present
+  #   loop:
+  #      - docker-ce 
+  #      - docker-ce-cli 
+  #      - containerd.io
 
-    - yum:
-        name: "{{ item }}"
-        state: present
-      loop:
-         - docker-ce 
-         - docker-ce-cli 
-         - containerd.io
+  # - systemd:
+  #     name: docker
+  #     enabled: yes
+  #     state: started
 
-    - systemd:
-        name: docker
-        enabled: yes
-        state: started
+  # - template:
+  #     src: daemon_template.j2
+  #     dest: /etc/docker/daemon.json
 
-    - template:
-        src: daemon_template.j2
-        dest: /etc/docker/daemon.json
+  # - systemd:
+  #     name: docker
+  #     state: restarted
 
-    - systemd:
-        name: docker
-        state: restarted
+  # - shell:
+  #     cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/myapp"
+  #   ignore_errors: yes
 
-    - shell:
-        cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/myapp"
-      ignore_errors: yes
+  - name: install virtualenv python library 
+    pip:
+      executable: /usr/bin/pip3
+      name: virtualenv
+      state: present
 
-    # - pip:
-    #     executable: /usr/bin/pip3
-    #     name: virtualenv
-    #     state: present
+  - name: unarchive application
+    unarchive:
+      src: app.tar.gz
+      copy: yes
+      dest: /opt
 
-    # - unarchive:
-    #     src: app.tar.gz
-    #     copy: yes
-    #     dest: /opt
+  - name: install application dependencies
+    shell:
+      cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
 
-    # - shell:
-    #     cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
+  - name: create symlink to systemd-service unit of application
+    file:
+      src: /opt/app/myapp.service
+      dest: /usr/lib/systemd/system/myapp.service
+      state: link
 
-    # - file:
-    #     src: /opt/app/myapp.service
-    #     dest: /usr/lib/systemd/system/myapp.service
-    #     state: link
+  - name: generate .env file from template and put to application directory
+    template:
+      src: env_template.j2
+      dest: /opt/app/.env
 
-    # - template:
-    #     src: env_template.j2
-    #     dest: /opt/app/.env
+  - name: enable and start application systemd-unit
+    systemd:
+      daemon_reload: yes
+      name: myapp
+      enabled: yes
+      state: started
 
-    # - systemd:
-    #     daemon_reload: yes
-    #     name: myapp
-    #     enabled: yes
-    #     state: started
-
-    - shell:
-        cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
+  - name: allow inbound traffic to 5000 port
+    shell:
+      cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"

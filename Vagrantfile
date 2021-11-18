@@ -1,4 +1,5 @@
 Vagrant.configure("2") do |config|
+########### bouncer VM
   config.vm.define "haproxy" do |haproxy|
 	  haproxy.vm.box = "generic/centos7"
 	  haproxy.vm.provider "libvirt" do |v|
@@ -22,6 +23,7 @@ Vagrant.configure("2") do |config|
     end
 	end
 
+########### DB VM
   config.vm.define "database" do |database|
 	  database.vm.box = "generic/centos7"
 	  database.vm.provider "libvirt" do |v|
@@ -44,6 +46,8 @@ Vagrant.configure("2") do |config|
     	}
     end
 	end
+
+########### Application VM #1
   config.vm.define "app1" do |app1|
 	  app1.vm.box = "generic/centos7"
   	app1.vm.provider "libvirt" do |v|
@@ -52,19 +56,9 @@ Vagrant.configure("2") do |config|
    	end
   	app1.vm.network "private_network", ip: "192.168.56.11"
   	app1.vm.network "forwarded_port", guest: 5000, host: 8081
-		app1.vm.provision "ansible" do |ansible|
-	    ansible.playbook = "app.yaml"
-	    ansible.limit = "app1"
-	    ansible.groups = {
-	      "node_app" => ["app1"]
-	    }
-	    ansible.extra_vars = {
-      	"db_ip" => '192.168.56.10',
-      	"db_user" => 'testuser',
-      	"db_pass" => '12345'
-    	}
-    end
   end
+
+########### Application VM #1
   config.vm.define "app2" do |app2|
     app2.vm.box = "generic/centos7"
   	app2.vm.provider "libvirt" do |v|
@@ -73,11 +67,14 @@ Vagrant.configure("2") do |config|
    	end
   	app2.vm.network "private_network", ip: "192.168.56.12"
   	app2.vm.network "forwarded_port", guest: 5000, host: 8082
-		app2.vm.provision "ansible" do |ansible|
+	end
+
+########### ansible playbook for application servers
+	config.provision "ansible" do |ansible|
 	    ansible.playbook = "app.yaml"
-	    ansible.limit = "app2"
+	    ansible.limit = "node_app"
 	    ansible.groups = {
-	      "node_app" => ["app2"]
+	      "node_app" => ["app1", "app2"],
 	    }
 	    ansible.extra_vars = {
       	"db_ip" => '192.168.56.10',
@@ -85,7 +82,4 @@ Vagrant.configure("2") do |config|
       	"db_pass" => '12345'
     	}
     end
-	end
-
-
 end

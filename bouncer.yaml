@@ -1,25 +1,29 @@
 ---
-- hosts: all
+- name: Deploy bouncer server
+  hosts: haproxy
   become: yes
-  gather_facts: yes
+  gather_facts: no
 
   tasks:
-#-------------------BOUNCER
+  - name: package HAProxy install
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+       - haproxy
 
-    - yum:
-        name: "{{ item }}"
-        state: present
-      loop:
-         - haproxy
+  - name: generation haproxy.cfg file and put to location
+    template:
+      src: haproxy_template.j2
+      dest: /etc/haproxy/haproxy.cfg
 
-    - systemd:
-        name: haproxy
-        enabled: yes
-        state: started
+  - name: enable and start HAProxy service
+    systemd:
+      name: haproxy
+      enabled: yes
+      state: started
 
-    - template:
-        src: haproxy_template.j2
-        dest: /etc/haproxy/haproxy.cfg
 
-    - shell:
-        cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
+  - name: allow inbound traffic to 5000 port
+    shell:
+      cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
