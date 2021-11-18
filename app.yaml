@@ -25,6 +25,11 @@
          - docker-ce-cli 
          - containerd.io
 
+    - systemd:
+        name: docker
+        enabled: yes
+        state: started
+
     - shell:
         cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/app"
       ignore_errors: yes
