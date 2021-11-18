@@ -12,42 +12,34 @@
          - python-setuptools
          - python3
          - screen
-      when: "'node_app' in group_names"
 
     - pip:
         executable: /usr/bin/pip3
         name: virtualenv
         state: present
-      when: "'node_app' in group_names"
 
     - unarchive:
         src: app.tar.gz
         copy: yes
         dest: /opt
-      when: "'node_app' in group_names"        
 
     - shell:
         cmd: /usr/bin/pip3 install -r /opt/app/requirements.txt
-      when: "'node_app' in group_names"
 
     - file:
         src: /opt/app/myapp.service
         dest: /usr/lib/systemd/system/myapp.service
         state: link
-      when: "'node_app' in group_names"
 
     - template:
         src: env_template.j2
         dest: /opt/app/.env
-      when: "'node_app' in group_names"
 
     - systemd:
         daemon_reload: yes
         name: myapp
         enabled: yes
         state: started
-      when: "'node_app' in group_names"
 
     - shell:
         cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
-      when: "'node_app' in group_names"

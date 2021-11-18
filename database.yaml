@@ -8,8 +8,7 @@
     - unarchive:
         src: app.tar.gz
         copy: yes
-        dest: /tmp/
-      when: "'node_database' in group_names"        
+        dest: /tmp/appbuild        
 
     # - file:
     #     src: /opt/app/myapp.service
@@ -28,11 +27,9 @@
       loop:
          - yum-utils
          - mariadb-server
-      when: "'node_database' in group_names"
 
     - shell:
         cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-      when: "'node_database' in group_names"
 
     - yum:
         name: "{{ item }}"
@@ -41,13 +38,15 @@
          - docker-ce 
          - docker-ce-cli 
          - containerd.io
-      when: "'node_database' in group_names"
 
     - systemd:
         name: docker
         enabled: yes
         state: started
-      when: "'node_database' in group_names"
+
+    - shell:
+        cmd: cd /tmp/appbuild && docker build -t apitest:0.2 .
+      ignore_errors: yes
 
     - file:
         path: /opt/registry
@@ -55,30 +54,25 @@
 
     - shell:
         cmd: docker run -d -p 5099:5099 --restart=always --name registry -v /opt/registry:/var/lib/registry registry:2
-      when: "'node_database' in group_names"
+      ignore_errors: yes
 
     - systemd:
         name: mariadb
         enabled: yes
         state: started
-      when: "'node_database' in group_names"
 
     - copy:
         src: db.sql
         dest: /tmp/
       tags: files
-      when: "'node_database' in group_names"
 
     - shell:
         cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
-      when: "'node_database' in group_names"
 
     - shell:
         cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
       loop: "{{ allowed_ip|flatten(levels=1) }}"
-      when: "'node_database' in group_names"
 
     - shell:
         cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 5099 -j ACCEPT"
       loop: "{{ allowed_ip|flatten(levels=1) }}"
-      when: "'node_database' in group_names"
