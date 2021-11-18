@@ -25,14 +25,18 @@
          - docker-ce-cli 
          - containerd.io
 
+    - systemd:
+        name: docker
+        enabled: yes
+        state: started
+
     - template:
         src: daemon_template.j2
         dest: /etc/docker/daemon.json
 
     - systemd:
         name: docker
-        enabled: yes
-        state: started
+        state: restarted
 
     - shell:
         cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/myapp"

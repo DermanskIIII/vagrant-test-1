@@ -24,9 +24,9 @@
     #   when: "'node_app' in group_names"
 
     - template:
-         src: env_template.j2
-         dest: /tmp/appbuild/app/.env
-       when: "'node_app' in group_names"
+        src: env_template.j2
+        dest: /tmp/appbuild/app/.env
+      when: "'node_app' in group_names"
 
     - yum:
         name: "{{ item }}"
