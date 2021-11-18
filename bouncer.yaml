@@ -23,7 +23,6 @@
       enabled: yes
       state: started
 
-
   - name: allow inbound traffic to 5000 port
     shell:
       cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"

@@ -53,7 +53,7 @@ Vagrant.configure("2") do |config|
   	app1.vm.network "forwarded_port", guest: 5000, host: 8081
 		app1.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "app.yaml"
-	    ansible.limit = "app1"
+	    ansible.limit = "node_app"
 	    ansible.groups = {
 	      "node_app" => ["app1"]
 	    }
@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
   	app2.vm.network "forwarded_port", guest: 5000, host: 8082
 		app2.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "app.yaml"
-	    ansible.limit = "app2"
+	    ansible.limit = "node_app"
 	    ansible.groups = {
 	      "node_app" => ["app2"]
 	    }
