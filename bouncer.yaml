@@ -19,7 +19,7 @@
 
     - template:
         src: haproxy.j2
-        dest: /etc/haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
 
     - shell:
         cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
