@@ -1,100 +1,100 @@
 ---
-- hosts: all
+- name: Deploy database and docker registry server
+  hosts: all
   become: yes
   gather_facts: yes
 
   tasks:
-#-------------------DATABASE
-    - name: add google-DNS to resolv.conf
-      line:
-        insertbefore: ^search
-        line: nameserver 8.8.8.8
+  - name: add google-DNS to resolv.conf
+    line:
+      insertbefore: ^search
+      line: nameserver 8.8.8.8
 
-    - name: creating directories
-      file:
-        path: "{{ item }}"
-        state: directory
-      loop:
-         - /opt/registry
-         - /tmp/appbuild
+  - name: creating directories
+    file:
+      path: "{{ item }}"
+      state: directory
+    loop:
+       - /opt/registry
+       - /tmp/appbuild
 
-    - name: unarchive application files for building the docker image 
-      unarchive:
-        src: app.tar.gz
-        copy: yes
-        dest: /tmp/appbuild        
+  - name: unarchive application files for building the docker image 
+    unarchive:
+      src: app.tar.gz
+      copy: yes
+      dest: /tmp/appbuild        
 
-    # - file:
-    #     src: /opt/app/myapp.service
-    #     dest: /usr/lib/systemd/system/myapp.service
-    #     state: link
-    #   when: "'node_app' in group_names"
+  # - file:
+  #     src: /opt/app/myapp.service
+  #     dest: /usr/lib/systemd/system/myapp.service
+  #     state: link
+  #   when: "'node_app' in group_names"
 
-    - name: put application .env file
-      template:
-        src: env_template.j2
-        dest: /tmp/appbuild/app/.env
-      when: "'node_app' in group_names"
+  - name: put application .env file
+    template:
+      src: env_template.j2
+      dest: /tmp/appbuild/app/.env
+    when: "'node_app' in group_names"
 
-    - name: install packages (mariadb-server)
-      yum:
-        name: "{{ item }}"
-        state: present
-      loop:
-         - yum-utils
-         - mariadb-server
+  - name: install packages (mariadb-server)
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+       - yum-utils
+       - mariadb-server
 
-    - name: add docker repo
-      shell:
-        cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  - name: add docker repo
+    shell:
+      cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-    - name: install docker packages
-      yum:
-        name: "{{ item }}"
-        state: present
-      loop:
-         - docker-ce 
-         - docker-ce-cli 
-         - containerd.io
+  - name: install docker packages
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+       - docker-ce 
+       - docker-ce-cli 
+       - containerd.io
 
-    - name: enable end start the docker service
-      systemd:
-        name: docker
-        enabled: yes
-        state: started
+  - name: enable end start the docker service
+    systemd:
+      name: docker
+      enabled: yes
+      state: started
 
-    - name: running docker-registry
-      shell:
-        cmd: docker run -d -p 5099:5000 --restart=always -v /opt/registry:/var/lib/registry registry:2.1
-      ignore_errors: yes
+  - name: running docker-registry
+    shell:
+      cmd: docker run -d -p 5099:5000 --restart=always -v /opt/registry:/var/lib/registry registry:2.1
+    ignore_errors: yes
 
-    - name: build, tag and push the API application docker image
-      shell:
-        cmd: cd /tmp/appbuild && docker build -t myapp . | grep built | awk '{ print $3," localhost:5099/myapp"}' | xargs echo docker tag && docker push localhost:5099/myapp
-      ignore_errors: yes
+  - name: build, tag and push the API application docker image
+    shell:
+      cmd: cd /tmp/appbuild && docker build -t myapp . | grep built | awk '{ print $3," localhost:5099/myapp"}' | xargs echo docker tag && docker push localhost:5099/myapp
+    ignore_errors: yes
 
-    - name: enable end starting mariadb-server
-      systemd:
-        name: mariadb
-        enabled: yes
-        state: started
+  - name: enable end starting mariadb-server
+    systemd:
+      name: mariadb
+      enabled: yes
+      state: started
 
-    - name: put SQL-file to server 
-      copy:
-        src: db.sql
-        dest: /tmp/
-      tags: files
+  - name: put SQL-file to server 
+    copy:
+      src: db.sql
+      dest: /tmp/
+    tags: files
 
-    - name: create and prepare database
-      shell:
-        cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
+  - name: create and prepare database
+    shell:
+      cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
 
-    - name: allow application-servers access to database`
-      shell:
-        cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
-      loop: "{{ allowed_ip|flatten(levels=1) }}"
+  - name: allow application-servers access to database`
+    shell:
+      cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
+    loop: "{{ allowed_ip|flatten(levels=1) }}"
 
-    - name: allow application-servers access to docker-registry
-      shell:
-        cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 5099 -j ACCEPT"
-      loop: "{{ allowed_ip|flatten(levels=1) }}"
+  - name: allow application-servers access to docker-registry
+    shell:
+      cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 5099 -j ACCEPT"
+    loop: "{{ allowed_ip|flatten(levels=1) }}"
