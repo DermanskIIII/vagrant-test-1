@@ -5,6 +5,11 @@
 
   tasks:
 #-------------------DATABASE
+    - user:
+        name: vagrant
+        groups: docker
+        append: yes
+
     - file:
         path: "{{ item }}"
         state: directory
