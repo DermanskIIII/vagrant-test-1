@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+#-------------------BOUNCER
+
+    - yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+         - haproxy
+      when: "'node_bouncer' in group_names"
+
+    - systemd:
+        name: haproxy
+        enabled: yes
+        state: started
+      when: "'node_bouncer' in group_names"
+
+    - template:
+        src: haproxy.j2
+        dest: /etc/haproxy.cfg
+      when: "'node_bouncer' in group_names"
+
+
+    - shell:
+        cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
+      when: "'node_bouncer' in group_names"
