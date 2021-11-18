@@ -5,6 +5,13 @@
 
   tasks:
 #-------------------DATABASE
+    - file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+         - /opt/registry
+         - /tmp/appbuild
+
     - unarchive:
         src: app.tar.gz
         copy: yes
@@ -47,10 +54,6 @@
     - shell:
         cmd: cd /tmp/appbuild && docker build -t apitest:0.2 .
       ignore_errors: yes
-
-    - file:
-        path: /opt/registry
-        state: directory
 
     - shell:
         cmd: docker run -d -p 5099:5099 --restart=always --name registry -v /opt/registry:/var/lib/registry registry:2
