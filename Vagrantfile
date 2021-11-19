@@ -14,10 +14,10 @@ Vagrant.configure("2") do |config|
 	      "node_bouncer" => ["bouncer"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'bouncer'
+        "hostname" => 'bouncer',
       	"backends" => [ 
       		{ name: 'app1', address: '192.168.56.11' }, 
-      		{ name: 'app2', address: '192.168.56.12' }, 
+      		{ name: 'app2', address: '192.168.56.12' }
       	]
     	}
     end
@@ -37,7 +37,7 @@ Vagrant.configure("2") do |config|
 	      "node_database" => ["database"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'database'
+        "hostname" => 'database',
       	"allowed_ip" => [ 
       		'192.168.56.11', 
       		'192.168.56.12'
@@ -59,7 +59,7 @@ Vagrant.configure("2") do |config|
 	      "node_app" => ["app1"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'app1'
+        "hostname" => 'app1',
         "bouncer_ip" => '192.168.0.20',
         "db_ip" => '192.168.56.10',
         "db_user" => 'testuser',
@@ -81,7 +81,7 @@ Vagrant.configure("2") do |config|
 	      "node_app" => ["app2"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'app2'
+        "hostname" => 'app2',
         "bouncer_ip" => '192.168.0.20',      	
         "db_ip" => '192.168.56.10',
       	"db_user" => 'testuser',
