@@ -64,10 +64,7 @@ Vagrant.configure("2") do |config|
     	app.vm.network "private_network", ip: node_ip
       app.vm.provision "ansible" do |ansible|
   	    ansible.playbook = "app.yaml"
-  	    ansible.limit = "node_app"
-  	    ansible.groups = {
-  	      "node_app" => node_hostname
-  	    }
+  	    ansible.limit = "all"
   	    ansible.extra_vars = {
           "hostname" => backends[i][:hostname],
           "bouncer_ip" => '192.168.0.20',
