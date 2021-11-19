@@ -1,3 +1,12 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+ 
+VAGRANTFILE_API_VERSION = "2"
+backends = [ 
+          { hostname: 'app1', address: '192.168.56.11' }, 
+          { hostname: 'app2', address: '192.168.56.12' }
+]
+
 Vagrant.configure("2") do |config|
   config.vm.define "bouncer" do |bouncer|
 	  bouncer.vm.box = "generic/centos7"
@@ -14,11 +23,8 @@ Vagrant.configure("2") do |config|
 	      "node_bouncer" => ["bouncer"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'bouncer',
-      	"backends" => [ 
-      		{ name: 'app1', address: '192.168.56.11' }, 
-      		{ name: 'app2', address: '192.168.56.12' }
-      	]
+        "hostname" => 'bouncer.local',
+      	"backends" => backends
     	}
     end
 	end
@@ -37,7 +43,7 @@ Vagrant.configure("2") do |config|
 	      "node_database" => ["database"]
 	    }
 	    ansible.extra_vars = {
-        "hostname" => 'database',
+        "hostname" => 'database.local',
       	"allowed_ip" => [ 
       		'192.168.56.11', 
       		'192.168.56.12'
@@ -45,50 +51,31 @@ Vagrant.configure("2") do |config|
     	}
     end
 	end
-  config.vm.define "app1" do |app1|
-	  app1.vm.box = "generic/centos7"
-  	app1.vm.provider "libvirt" do |v|
-	  	v.memory = 512
-   	  v.cpus = 1
-   	end
-  	app1.vm.network "private_network", ip: "192.168.56.11"
-    app1.vm.provision "ansible" do |ansible|
-	    ansible.playbook = "app.yaml"
-	    ansible.limit = "node_app"
-	    ansible.groups = {
-	      "node_app" => ["app1"]
-	    }
-	    ansible.extra_vars = {
-        "hostname" => 'app1',
-        "bouncer_ip" => '192.168.0.20',
-        "db_ip" => '192.168.56.10',
-        "db_user" => 'testuser',
-        "db_pass" => '12345'
-    	}
+
+  backends.length.times do |i|
+    node_hostname = backends[i][:hostname]
+    node_ip = backends[i][:address]
+    config.vm.define node_hostname do |app|
+  	  app.vm.box = "generic/centos7"
+    	app.vm.provider "libvirt" do |v|
+  	  	v.memory = 512
+     	  v.cpus = 1
+     	end
+    	app.vm.network "private_network", ip: node_ip
+      app.vm.provision "ansible" do |ansible|
+  	    ansible.playbook = "app.yaml"
+  	    ansible.limit = "node_app"
+  	    ansible.groups = {
+  	      "node_app" => node_hostname
+  	    }
+  	    ansible.extra_vars = {
+          "hostname" => backends[i][:hostname],
+          "bouncer_ip" => '192.168.0.20',
+          "db_ip" => '192.168.56.10',
+          "db_user" => 'testuser',
+          "db_pass" => '12345'
+      	}
+      end
     end
   end
-  config.vm.define "app2" do |app2|
-    app2.vm.box = "generic/centos7"
-  	app2.vm.provider "libvirt" do |v|
-	  	v.memory = 512
-   	  v.cpus = 1
-   	end
-  	app2.vm.network "private_network", ip: "192.168.56.12"
-		app2.vm.provision "ansible" do |ansible|
-	    ansible.playbook = "app.yaml"
-	    ansible.limit = "node_app"
-	    ansible.groups = {
-	      "node_app" => ["app2"]
-	    }
-	    ansible.extra_vars = {
-        "hostname" => 'app2',
-        "bouncer_ip" => '192.168.0.20',      	
-        "db_ip" => '192.168.56.10',
-      	"db_user" => 'testuser',
-      	"db_pass" => '12345'
-    	}
-    end
-	end
-
-
 end

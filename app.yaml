@@ -49,4 +49,4 @@
 
   - name: allow inbound traffic to 5000 port from bouncer ip address
     shell:
-      cmd: "-A INPUT -s {{ bouncer_ip }}/32 -p tcp -m tcp --dport 5000 -j ACCEPT"
+      cmd: "iptables -I INPUT 1 -s {{ bouncer_ip }}/32 -p tcp -m tcp --dport 5000 -j ACCEPT"
