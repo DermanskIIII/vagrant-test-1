@@ -33,5 +33,5 @@
 
   - name: allow access to database for application-servers
     shell:
-      cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
-    loop: "{{ allowed_ip|flatten(levels=1) }}"
+      cmd: "iptables -I INPUT 1 -s {{ item.address }} -p tcp -m tcp --dport 3306 -j ACCEPT"
+    loop: "{{ backends|flatten(levels=1) }}"
