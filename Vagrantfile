@@ -24,12 +24,12 @@ Vagrant.configure("2") do |config|
    	  v.cpus = 1
    	end
 	  bouncer.vm.network "private_network", ip: bouncer_ip
-	  bouncer.vm.provision "ansible" do |ansible|
-	    ansible.playbook = "bouncer.yaml"
-	    ansible.groups = {
+	  bouncer.vm.provision "ansible" do |provision_bouncer|
+	    provision_bouncer.playbook = "bouncer.yaml"
+	    provision_bouncer.groups = {
 	      "node_bouncer" => ["bouncer"]
 	    }
-	    ansible.extra_vars = {
+	    provision_bouncer.extra_vars = {
         "hostname" => 'bouncer',
       	"backends" => backends
     	}
@@ -43,12 +43,12 @@ Vagrant.configure("2") do |config|
    	  v.cpus = 1
    	end
 	  database.vm.network "private_network", ip: db_ip
-	  database.vm.provision "ansible" do |ansible|
-	    ansible.playbook = "database.yaml"
-	    ansible.groups = {
+	  database.vm.provision "ansible" do |provision_database|
+	    provision_database.playbook = "database.yaml"
+	    provision_database.groups = {
 	      "node_database" => ["database"]
 	    }
-	    ansible.extra_vars = {
+	    provision_database.extra_vars = {
         "hostname" => "database",
       	"backends" => backends
     	}
@@ -65,12 +65,12 @@ Vagrant.configure("2") do |config|
      	  v.cpus = 1
      	end
     	app.vm.network "private_network", ip: node_ip
-      app.vm.provision "ansible" do |ansible|
-  	    ansible.playbook = "app.yaml"
-  	    ansible.groups = {
+      app.vm.provision "ansible" do |provision_apps|
+  	    provision_apps.playbook = "app.yaml"
+  	    provision_apps.groups = {
   	      "app_nodes" => app_nodes
   	    }
-  	    ansible.extra_vars = {
+  	    provision_apps.extra_vars = {
           "hostname" => backends[i][:hostname],
           "bouncer_ip" => bouncer_ip,
           "db_ip" => db_ip,
