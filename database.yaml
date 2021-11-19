@@ -1,6 +1,6 @@
 ---
 - name: Deploy database and docker registry server
-  hosts: database
+  hosts: node_database
   become: yes
   gather_facts: yes
 

@@ -25,7 +25,6 @@ Vagrant.configure("2") do |config|
 	  bouncer.vm.network "forwarded_port", guest: 5000, host: 8080
 	  bouncer.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "bouncer.yaml"
-	    ansible.limit = "bouncer"
 	    ansible.groups = {
 	      "node_bouncer" => ["bouncer"]
 	    }
@@ -45,7 +44,6 @@ Vagrant.configure("2") do |config|
 	  database.vm.network "private_network", ip: "192.168.56.10"
 	  database.vm.provision "ansible" do |ansible|
 	    ansible.playbook = "database.yaml"
-	    ansible.limit = "database"
 	    ansible.groups = {
 	      "node_database" => ["database"]
 	    }
@@ -71,7 +69,6 @@ Vagrant.configure("2") do |config|
     	app.vm.network "private_network", ip: node_ip
       app.vm.provision "ansible" do |ansible|
   	    ansible.playbook = "app.yaml"
-  	    ansible.limit = app_nodes
   	    ansible.groups = {
   	      "app_nodes" => app_nodes
   	    }

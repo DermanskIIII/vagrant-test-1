@@ -1,6 +1,6 @@
 ---
 - name: Deploy bouncer server
-  hosts: haproxy
+  hosts: node_bouncer
   become: yes
   gather_facts: no
 
