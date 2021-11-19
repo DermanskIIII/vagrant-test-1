@@ -41,5 +41,5 @@ backend app_back
     option httpclose
     option forwardfor
 {% for backend in backends %}
-    server {{ backend.name }} {{ backend.address }}:5000 check
+    server {{ backend.hpstname }} {{ backend.address }}:5000 check
 {% endfor %}
