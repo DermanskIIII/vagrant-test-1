@@ -20,16 +20,16 @@
 
 ## Чтобы запустить проект выполните команды:
     
-git clone https://github.com/DermanskIIII/vagrant-test-1.git
-cd vagrant-test-1
-vagrant up
+	git clone https://github.com/DermanskIIII/vagrant-test-1.git
+	cd vagrant-test-1
+	vagrant up
     
 Добавьте в ваш **/etc/hosts** файл (**%WINDIR%\system32\drivers\etc\hosts** в ОС семейства Windows) строку
-    
-127.0.0.1 app.local
-    
+
+`127.0.0.1 app.local`
+
 После завершения всех процедур запуска и конфигурирования машин выполните команду
     
-curl app.local:5000/items
+`curl app.local:5000/items`
     
 результатом её будет отображение json содержащего записи БД, а также, последней строкой, адрес ответившей ноды приложения.
