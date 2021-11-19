@@ -5,46 +5,19 @@
   gather_facts: yes
 
   tasks:
+  - name: set hostname
+    hostname:
+      use: systemd
+      name: "{{ hostname }}"
+
   - name: install necessary packages
     yum:
       name: "{{ item }}"
       state: present
     loop:
-       - yum-utils
        - python-setuptools
        - python3
        - screen
-
-  # - yum:
-  #     name: "{{ item }}"
-  #     state: present
-  #   loop:
-  #      - docker-ce 
-  #      - docker-ce-cli 
-  #      - containerd.io
-
-  # - systemd:
-  #     name: docker
-  #     enabled: yes
-  #     state: started
-
-  # - template:
-  #     src: daemon_template.j2
-  #     dest: /etc/docker/daemon.json
-
-  # - systemd:
-  #     name: docker
-  #     state: restarted
-
-  # - shell:
-  #     cmd: "docker run -d -p 5000:5000 --restart=always {{ db_ip }}:5099/myapp"
-  #   ignore_errors: yes
-
-  - name: install virtualenv python library 
-    pip:
-      executable: /usr/bin/pip3
-      name: virtualenv
-      state: present
 
   - name: unarchive application
     unarchive:
@@ -74,6 +47,6 @@
       enabled: yes
       state: started
 
-  - name: allow inbound traffic to 5000 port
+  - name: allow inbound traffic to 5000 port from bouncer ip address
     shell:
-      cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"
+      cmd: "-A INPUT -s {{ bouncer_ip }}/32 -p tcp -m tcp --dport 5000 -j ACCEPT"

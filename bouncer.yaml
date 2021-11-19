@@ -5,12 +5,15 @@
   gather_facts: no
 
   tasks:
-  - name: package HAProxy install
+  - name: set hostname
+    hostname:
+      use: systemd
+      name: "{{ hostname }}"
+
+  - name:  install HAProxy package
     yum:
-      name: "{{ item }}"
+      name: haproxy
       state: present
-    loop:
-       - haproxy
 
   - name: generation haproxy.cfg file and put to location
     template:
@@ -23,6 +26,6 @@
       enabled: yes
       state: started
 
-  - name: allow inbound traffic to 5000 port
+  - name: allow inbound traffic to 5000 port (inner VM)
     shell:
       cmd: "iptables -I INPUT 1 -p tcp -m tcp --dport 5000 -j ACCEPT"

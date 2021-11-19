@@ -5,68 +5,15 @@
   gather_facts: yes
 
   tasks:
-  # - name: add google-DNS to resolv.conf
-  #   lineinfile:
-  #     path: /etc/resolv.conf
-  #     insertafter: ^search
-  #     line: nameserver 8.8.8.8
+  - name: set hostname
+    hostname:
+      use: systemd
+      name: "{{ hostname }}"
 
-  # - name: creating directories
-  #   file:
-  #     path: "{{ item }}"
-  #     state: directory
-  #   loop:
-  #      - /opt/registry
-  #      - /tmp/appbuild
-
-  # - name: unarchive application files for building the docker image 
-  #   unarchive:
-  #     src: app.tar.gz
-  #     copy: yes
-  #     dest: /tmp/appbuild        
-
-  # - name: put application .env file
-  #   template:
-  #     src: env_template.j2
-  #     dest: /tmp/appbuild/app/.env
-  #   when: "'node_app' in group_names"
-
-  - name: install packages (mariadb-server)
+  - name: install mariadb-server package
     yum:
-      name: "{{ item }}"
+      name: mariadb-server
       state: present
-    loop:
-#       - yum-utils
-       - mariadb-server
-
-  # - name: add docker repo
-  #   shell:
-  #     cmd: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-
-  # - name: install docker packages
-  #   yum:
-  #     name: "{{ item }}"
-  #     state: present
-  #   loop:
-  #      - docker-ce 
-  #      - docker-ce-cli 
-  #      - containerd.io
-
-  # - name: enable end start the docker service
-  #   systemd:
-  #     name: docker
-  #     enabled: yes
-  #     state: started
-
-  # - name: running docker-registry
-  #   shell:
-  #     cmd: docker run -d -p 5099:5000 --restart=always -v /opt/registry:/var/lib/registry registry:2.1
-  #   ignore_errors: yes
-
-  # - name: build, tag and push the API application docker image
-  #   shell:
-  #     cmd: cd /tmp/appbuild && docker build -t myapp . | grep built | awk '{ print $3," localhost:5099/myapp"}' | xargs docker tag && docker push localhost:5099/myapp
-  #   ignore_errors: yes
 
   - name: enable end starting mariadb-server
     systemd:
@@ -84,12 +31,7 @@
     shell:
       cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
 
-  - name: allow application-servers access to database`
+  - name: allow access to database for application-servers
     shell:
       cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 3306 -j ACCEPT"
     loop: "{{ allowed_ip|flatten(levels=1) }}"
-
-  # - name: allow application-servers access to docker-registry
-  #   shell:
-  #     cmd: "iptables -I INPUT 1 -s {{ item }} -p tcp -m tcp --dport 5099 -j ACCEPT"
-  #   loop: "{{ allowed_ip|flatten(levels=1) }}"

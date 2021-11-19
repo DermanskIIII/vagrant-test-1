@@ -18,6 +18,10 @@ app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_POOL_RECYCLE"] = 1
+app.config["SQLALCHEMY_POOL_SIZE"] = 100
+app.config["SQLALCHEMY_POOL_TIMEOUT"] = 1
+
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
