@@ -71,7 +71,7 @@ Vagrant.configure("2") do |config|
     	app.vm.network "private_network", ip: node_ip
       app.vm.provision "ansible" do |ansible|
   	    ansible.playbook = "app.yaml"
-  	    ansible.limit = "app_nodes"
+  	    ansible.limit = app_nodes
   	    ansible.groups = {
   	      "app_nodes" => app_nodes
   	    }
