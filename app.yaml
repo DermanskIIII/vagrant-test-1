@@ -17,7 +17,6 @@
     loop:
        - python-setuptools
        - python3
-       - screen
 
   - name: unarchive application
     unarchive:
