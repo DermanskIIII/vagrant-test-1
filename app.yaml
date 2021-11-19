@@ -1,6 +1,6 @@
 ---
 - name: Deploy applications servers
-  hosts: all
+  hosts: app_nodes
   become: yes
   gather_facts: yes
 

@@ -2,10 +2,17 @@
 # vi: set ft=ruby :
  
 VAGRANTFILE_API_VERSION = "2"
+
+#in this array enumerates all nodes
 backends = [ 
           { hostname: 'app1', address: '192.168.56.11' }, 
-          { hostname: 'app2', address: '192.168.56.12' }
+          { hostname: 'app2', address: '192.168.56.12' },
+#          { hostname: 'app3', address: '192.168.56.13' },
+#          { hostname: 'app4', address: '192.168.56.14' },
 ]
+
+app_nodes = []
+backends.cycle(1) { |server| app_nodes.append(server[:hostname]) }
 
 Vagrant.configure("2") do |config|
   config.vm.define "bouncer" do |bouncer|
@@ -64,7 +71,10 @@ Vagrant.configure("2") do |config|
     	app.vm.network "private_network", ip: node_ip
       app.vm.provision "ansible" do |ansible|
   	    ansible.playbook = "app.yaml"
-  	    ansible.limit = "all"
+  	    ansible.limit = "app_nodes"
+  	    ansible.groups = {
+  	      "app_nodes" => app_nodes
+  	    }
   	    ansible.extra_vars = {
           "hostname" => backends[i][:hostname],
           "bouncer_ip" => '192.168.0.20',
