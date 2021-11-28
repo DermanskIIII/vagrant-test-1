@@ -1,0 +1,32 @@
+---
+- name: Deploy database and docker registry server
+  hosts: node_database
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: install mariadb-server package
+    yum:
+      name: mariadb-server
+      state: present
+
+  - name: enable end starting mariadb-server
+    systemd:
+      name: mariadb
+      enabled: yes
+      state: started
+
+  - name: put SQL-file to server 
+    copy:
+      src: db.sql
+      dest: /tmp/
+    tags: files
+
+  - name: create and prepare database
+    shell:
+      cmd: mysql < /tmp/db.sql && rm /tmp/db.sql
+
+  - name: allow access to database for application-servers
+    shell:
+      cmd: "iptables -I INPUT 1 -s {{ item.address }} -p tcp -m tcp --dport 3306 -j ACCEPT"
+    loop: "{{ backends|flatten(levels=1) }}"
